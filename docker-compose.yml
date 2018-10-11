@@ -1,32 +1,54 @@
 version: "2"
 
 services:
-  app:
+  nginx:
+    image: beevelop/nginx-basic-auth
+    ports:
+     - "80:80"
+    expose:
+     - "80"
+    links:
+     - web
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    environment:
+      - FORWARD_PORT=3000
+      - 'HTPASSWD=homemd:$$apr1$$84gIjW7d$$O3KcGZGfq38RRbTv4mDfb.'
+  web:
     image: wearefriday/spectre
     build: .
     ports:
      - "3000:3000"
+    expose:
+     - "3000"
     links:
      - db
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
     environment:
       - RAILS_ENV=production
       - RAILS_SERVE_STATIC_FILES=true
       - DATABASE_URL=postgresql://postgres@db/spectre
-      - DOMAIN_NAME=app
-      - PORT=:3000
+      - DOMAIN_NAME=spectre.homemd.ca
+      - PORT=:80
       - PROTOCOL=http://
     volumes:
-     - .:/app
-    command: bash -c "rm -f /app/tmp/pids/*.pid && rake assets:precompile && SECRET_KEY_BASE=`rake secret` rails server -b 0.0.0.0"
+     - .:/web
+    command: bash -c "rm -f /app/tmp/pids/*.pid /web/tmp/pids/*.pid && rake assets:precompile && SECRET_KEY_BASE=`rake secret` rails server -b 0.0.0.0"
 
   db:
     image: postgres:9.4
     ports:
      - "5432"
     volumes:
-     - .:/app
+     - .:/web
      - .:/public
      - data-db:/var/lib/postgresql/data
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
     environment:
      - POSTGRES_DB=spectre
 
