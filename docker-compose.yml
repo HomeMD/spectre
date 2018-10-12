@@ -16,7 +16,7 @@ services:
       - FORWARD_PORT=3000
       - 'HTPASSWD=homemd:$$apr1$$84gIjW7d$$O3KcGZGfq38RRbTv4mDfb.'
   web:
-    image: wearefriday/spectre
+    image: myspectre:latest
     build: .
     ports:
      - "3000:3000"
